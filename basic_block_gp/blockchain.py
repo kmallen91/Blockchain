@@ -90,13 +90,18 @@ class Blockchain(object):
         :return: A valid proof for the provided block
         """
         # TODO
-        pass
+        block_string = json.dumps(block, sort_keys=True)
+
+        proof = 0
+        while self.valid_proof(block_string, proof) is False:
+            proof += 1
+        return proof
         # return proof
 
     @staticmethod
     def valid_proof(block_string, proof):
         """
-        Validates the Proof:  Does hash(block_string, proof) contain 3
+        Validates the Proof:  Does hash(block_string + proof) contain 3
         leading zeroes?  Return true if the proof is valid
         :param block_string: <string> The stringified block to use to
         check in combination with `proof`
@@ -106,7 +111,11 @@ class Blockchain(object):
         :return: True if the resulting hash is a valid proof, False otherwise
         """
         # TODO
-        pass
+        guess = f'{block_string}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+
+        return guess_hash[:3] == '000'
+
         # return True or False
 
 
@@ -123,11 +132,15 @@ blockchain = Blockchain()
 @app.route('/mine', methods=['GET'])
 def mine():
     # Run the proof of work algorithm to get the next proof
+    proof = blockchain.proof_of_work(blockchain.last_block)
 
     # Forge the new Block by adding it to the chain with the proof
+    prev_hash = blockchain.hash(blockchain.last_block)
+    block = blockchain.new_block(proof, prev_hash)
 
     response = {
         # TODO: Send a JSON response with the new block
+        'new_block': block
     }
 
     return jsonify(response), 200
