@@ -4,7 +4,12 @@ import axios from 'axios'
 export default function Wallet() {
     const [chain, setChain] = useState()
     const [response, setResponse] = useState()
-    const [info, setInfo] = useState({ username: "", recipient: "", amount:'' });
+    const [info, setInfo] = useState({
+        headers: {
+            "Content-Type": "application/json",
+        },
+        data: {username: "", recipient: "", amount:'' }
+        })
 
     const handleChanges = e => {
         setInfo({...info, [e.target.name]: e.target.value}); 
@@ -12,11 +17,11 @@ export default function Wallet() {
 
     useEffect(() => {
         axios
-            .get('localhost:5000/chain')
+            .get('http://localhost:5000/chain')
             .then(res => setChain(res.data))
             .catch(err => console.log(err))
 
-    })
+    }, [])
     
     const handleSubmit = (e) => {
         const {username, recipient, amount } = e
@@ -28,12 +33,15 @@ export default function Wallet() {
         e.preventDefault()
         axios
             .post('localhost:5000/transactions/new', info)
-            .then(res => setResponse(res))
+            .then(res => setResponse(res.data))
             .catch(err => console.log(err))
     }
+
+    console.log('chain', chain, response )
+
     return (
 
-
+        <>
         <div className='wallet-container'>
             <form onSubmit = {handleSubmit}>
                 <label>Username</label>
@@ -46,5 +54,30 @@ export default function Wallet() {
 
             <button className='wallet-button' type='submit'>Send Transaction</button>
         </div>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Index</th>
+                        <th>Previous Hash</th>
+                        <th>Sender</th>
+                        <th>Amount</th>
+                        <th>Recipient</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {chain && chain.chain.map(item => (
+                        <tr key={item.index}>
+                            <td>{item.index}</td>
+                            <td>{item.previous_hash}</td>
+                            <td>{item.transactions.amount} </td>
+                            <td>{item.transactions.amount}</td>
+                            <td>{item.transactions.recipient}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+        </>
     )
 }
